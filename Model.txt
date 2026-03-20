@@ -1,0 +1,150 @@
+4. Functional Modules (Core System Model)
+4.1 User (Donor) Module
+
+User registration using:
+
+Mobile number + OTP verification
+
+Secure login (JWT / session-based)
+
+View list of verified organizations
+
+View requests posted by organizations
+
+Donate:
+
+Money (online payment)
+
+Items (physical donation)
+
+Track donation history
+
+View donation status
+
+4.2 Organization / NGO Module
+
+Organization registration (manual admin approval)
+
+Secure login
+
+Create donation requests:
+
+Type (Money / Items)
+
+Quantity / Amount needed
+
+Description
+
+View donor responses
+
+Update request status (Open / Fulfilled)
+
+View received donations
+
+4.3 Admin Module
+
+Approve or reject organizations
+
+Manage users and NGOs
+
+Monitor donations
+
+Remove fake or inactive requests
+
+Generate reports
+
+4.4 Payment Module
+
+Secure payment gateway integration
+
+Generate transaction ID
+
+Store payment logs
+
+Handle success / failure callbacks
+
+5. Authentication & Security Model
+4
+User Authentication
+
+Mobile Number → OTP → Verify → Account Created
+
+JWT token for session handling
+
+Organization Authentication
+
+Email + Password
+
+Admin verification mandatory
+
+Security Features
+
+Password hashing (bcrypt)
+
+Role-based access control
+
+HTTPS enabled
+
+Input validation
+
+OTP expiry & retry limits
+
+6. Database Design (Logical Model)
+Main Tables / Collections
+User
+
+userId
+
+name
+
+mobileNumber
+
+email
+
+role (Donor)
+
+createdAt
+
+Organization
+
+orgId
+
+name
+
+registrationNo
+
+address
+
+contactEmail
+
+status (Pending / Approved)
+
+DonationRequest
+
+requestId
+
+orgId
+
+type (Money / Item)
+
+description
+
+quantity / amount
+
+status
+
+Donation
+
+donationId
+
+userId
+
+requestId
+
+donationType
+
+amount / itemDetails
+
+paymentStatus
+
+timestamp
