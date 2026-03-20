@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: community-connect
+    runtime: python
+    buildCommand: ""
+    startCommand: python app.py
