@@ -35,7 +35,7 @@ app = Flask(__name__)
 CORS(app)
 
 # MongoDB Connection
-client = MongoClient("mongodb+srv://sam:<samjas_12>@community-connect-clust.dncl78w.mongodb.net/community_connect?retryWrites=true&w=majority")
+client = MongoClient("mongodb+srv://sam:samjas_12@community-connect-clust.dncl78w.mongodb.net/community_connect?retryWrites=true&w=majority")
 db = client["community_connect"]
 
 users_collection = db["users"]
