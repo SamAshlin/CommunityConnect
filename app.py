@@ -35,7 +35,7 @@ app = Flask(__name__)
 CORS(app)
 
 # MongoDB Connection
-client = MongoClient("mongodb://localhost:27017/")
+client = MongoClient("mongodb+srv://sam:<samjas_12>@community-connect-clust.dncl78w.mongodb.net/community_connect?retryWrites=true&w=majority")
 db = client["community_connect"]
 
 users_collection = db["users"]
@@ -998,5 +998,7 @@ def add_header(response):
     response.headers["Cache-Control"] = "no-store"
     return response
 
+
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
