@@ -1,0 +1,9 @@
+flask
+flask-cors
+pymongo
+bcrypt
+pyjwt
+razorpay
+qrcode
+werkzeug
+gunicorn
