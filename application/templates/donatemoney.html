@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Donate Money</title>
+
+<style>
+
+/* ===== GLOBAL ===== */
+body{
+  margin:0;
+  font-family:'Inter',sans-serif;
+  background: radial-gradient(circle at top,#0f172a,#020617);
+  color:#e2e8f0;
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* ===== CARD ===== */
+.container{
+  width:420px;
+  padding:30px;
+  border-radius:18px;
+  background:rgba(255,255,255,0.05);
+  backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,0.08);
+  box-shadow:0 20px 50px rgba(0,0,0,0.5);
+  text-align:center;
+  animation:fadeUp 0.5s ease;
+  margin: auto;
+}
+
+/* ===== TITLE ===== */
+h2{
+  margin-top:0;
+  background: linear-gradient(90deg,#a78bfa,#60a5fa);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ===== TEXT ===== */
+.info{
+  color:#94a3b8;
+  margin:10px 0;
+  text-align:center;
+}
+
+/* ===== INPUT ===== */
+input{
+  width:100%;
+  padding:12px;
+  margin-top:15px;
+  border-radius:10px;
+  border:none;
+  background:rgba(255,255,255,0.05);
+  color:white;
+}
+
+/* ===== BUTTONS ===== */
+button{
+  width:100%;
+  padding:14px;
+  margin-top:12px;
+  border:none;
+  border-radius:12px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+.gateway{
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  color:white;
+}
+
+.qr{
+  background:rgba(255,255,255,0.08);
+  color:#e2e8f0;
+}
+
+/* ===== QR BOX ===== */
+.qr-box{
+  margin-top:20px;
+  padding:15px;
+  border-radius:12px;
+  background:rgba(255,255,255,0.05);
+  display:none;
+}
+
+/* ===== SUCCESS ===== */
+.success{
+  color:#22c55e;
+  margin-top:15px;
+}
+
+/* ===== SPINNER ===== */
+.loading-btn{
+  pointer-events:none;
+  opacity:0.8;
+}
+
+.spinner{
+  width:18px;
+  height:18px;
+  border:3px solid rgba(255,255,255,0.3);
+  border-top:3px solid white;
+  border-radius:50%;
+  animation:spin 0.8s linear infinite;
+  margin:auto;
+}
+
+@keyframes spin{
+  from{transform:rotate(0);}
+  to{transform:rotate(360deg);}
+}
+
+@keyframes fadeUp{
+  from{opacity:0; transform:translateY(20px);}
+  to{opacity:1; transform:translateY(0);}
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+<h2 id="title">Loading...</h2>
+<div class="info" id="org"></div>
+<div class="info" id="location"></div>
+<input id="amount" placeholder="Enter Donation Amount ₹">
+<div class="buttons">
+<button id="gatewayBtn" class="gateway" onclick="payGateway()">
+  Pay via Gateway
+</button>
+
+<button id="qrBtn" class="qr" onclick="generQR()">
+  Pay via QR
+</button>
+
+</div>
+
+<div id="qrBox" class="qr-box"></div>
+
+<div id="successMsg" class="success"></div>
+
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+
+const params = new URLSearchParams(window.location.search);
+const requestId = params.get("request");
+
+const token = localStorage.getItem("token");
+
+async function loadRequest(){
+if(!token){
+window.location.href="/user-login";
+return;
+}
+
+const res = await fetch("/request-payment/"+requestId,{
+headers:{
+"Authorization": token
+}
+});
+
+const data = await res.json();
+document.getElementById("title").innerText = data.title;
+document.getElementById("org").innerText = "Organization: " + data.org_name;
+document.getElementById("location").innerText = "Location: " + data.location;
+}
+
+async function payGateway(){
+
+const btn = document.getElementById("gatewayBtn");
+
+/* START LOADING */
+btn.classList.add("loading-btn");
+btn.innerHTML = `<div class="spinner"></div>`;
+
+const amount = document.getElementById("amount").value;
+
+if(!amount){
+  alert("Enter amount");
+  resetBtn();
+  return;
+}
+
+const token = localStorage.getItem("token");
+
+try{
+
+const res = await fetch("/create-order",{
+method:"POST",
+headers:{
+"Content-Type":"application/json",
+"Authorization": token
+},
+body: JSON.stringify({ amount })
+});
+
+const order = await res.json();
+
+/* RESET BEFORE OPENING RAZORPAY */
+resetBtn();
+
+var options = {
+key: "rzp_test_SNengkBygDxNPO",
+amount: order.amount,
+currency: "INR",
+order_id: order.order_id,
+handler: async function(response){
+
+const verify = await fetch("/verify-payment",{
+method:"POST",
+headers:{
+"Content-Type":"application/json",
+"Authorization": token
+},
+body: JSON.stringify({
+payment_id: response.razorpay_payment_id,
+request_id: requestId
+})
+});
+
+const result = await verify.json();
+alert(result.msg);
+
+await fetch("/add-notification",{
+method:"POST",
+headers:{
+"Content-Type":"application/json",
+"Authorization": token
+},
+body: JSON.stringify({
+text: "Your donation was successful 💰"
+})
+});
+
+window.location.href="/user-dashboard";
+}
+};
+
+new Razorpay(options).open();
+
+}catch(err){
+alert("Payment failed");
+resetBtn();
+}
+
+function resetBtn(){
+btn.classList.remove("loading-btn");
+btn.innerText = "Pay via Gateway";
+}
+
+}
+
+
+async function generateQR(){
+const amount = document.getElementById("amount").value;
+const res = await fetch("/create-qr",{
+method:"POST",
+headers:{
+"Content-Type":"application/json",
+"Authorization": token
+},
+body: JSON.stringify({
+amount: amount,
+request_id: requestId
+})
+});
+
+const data = await res.json();
+const qrBox = document.getElementById("qrBox");
+qrBox.style.display="block";
+qrBox.innerHTML = `
+<h3>Scan to Pay</h3>
+<img src="${data.qr_image}" width="220">
+<p><b>UPI ID:</b> ${data.upi}</p>
+<p>Waiting for payment...</p>
+`;
+
+pollPayment(data.qr_id);
+}
+
+async function pollPayment(qrId){
+const interval = setInterval(async ()=>{
+const res = await fetch("/check-qr/"+qrId);
+const data = await res.json();
+
+if(data.paid){
+
+clearInterval(interval);
+
+await fetch("/verify-payment",{
+method:"POST",
+headers:{
+"Content-Type":"application/json",
+"Authorization": token
+},
+body: JSON.stringify({
+payment_id: data.payment_id,
+request_id: requestId
+})
+});
+
+document.getElementById("successMsg").innerText =
+"Donation successful!";
+await fetch("/add-notification",{
+method:"POST",
+headers:{
+"Content-Type":"application/json",
+"Authorization": token
+},
+body: JSON.stringify({
+text: "Your donation was successful 💰"
+})
+});
+
+setTimeout(()=>{
+window.location.href="/user-dashboard";
+},2000);
+
+}
+},3000);
+}
+
+//TEMPORARY CHECK
+
+async function generQR(){
+
+const btn = document.getElementById("qrBtn");
+
+btn.classList.add("loading-btn");
+btn.innerHTML = `<div class="spinner"></div>`;
+
+const amount = document.getElementById("amount").value;
+
+if(!amount){
+  alert("Enter donation amount first");
+  resetBtn();
+  return;
+}
+
+try{
+
+const params = new URLSearchParams(window.location.search);
+const requestId = params.get("request");
+
+const res = await fetch(`/generate-qr/${requestId}/${amount}`);
+const data = await res.json();
+
+const qrBox = document.getElementById("qrBox");
+
+qrBox.style.display="block";
+
+qrBox.innerHTML = `
+<h3>Scan to Pay</h3>
+<img src="data:image/png;base64,${data.qr}" width="200">
+<p>UPI ID: ${data.upi}</p>
+<p>After payment click confirm</p>
+<button onclick="confirmQR()">Confirm Payment</button>
+`;
+
+}catch(err){
+alert("QR generation failed");
+}
+
+resetBtn();
+
+function resetBtn(){
+btn.classList.remove("loading-btn");
+btn.innerText = "Pay via QR";
+}
+
+}
+
+async function confirmQR(){
+const txnId = prompt("Enter UPI Transaction ID");
+if(!txnId){
+alert("Transaction ID required");
+return;
+}
+
+const res = await fetch("/verify-pay",{
+method:"POST",
+headers:{
+"Content-Type":"application/json",
+"Authorization": token
+},
+body: JSON.stringify({
+payment_id: txnId,
+request_id: requestId,
+amount: document.getElementById("amount").value
+})
+});
+
+const data = await res.json();
+
+alert(data.msg);
+await fetch("/add-notification",{
+method:"POST",
+headers:{
+"Content-Type":"application/json",
+"Authorization": token
+},
+body: JSON.stringify({
+text: "Your donation was successful 💰"
+})
+});
+
+if(data.msg === "Donation successful"){
+window.location.href="/user-dashboard";
+}
+
+}
+// ----
+
+loadRequest();
+
+</script>
+
+</body>
+</html>

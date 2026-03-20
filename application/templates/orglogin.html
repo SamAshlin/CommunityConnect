@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Organization Login</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+/* ===== GLOBAL ===== */
+body{
+  margin:0;
+  font-family:'Inter',sans-serif;
+  background: radial-gradient(circle at top,#0f172a,#020617);
+  color:#e2e8f0;
+  height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* ===== CARD ===== */
+.container{
+  width:360px;
+  padding:30px;
+  border-radius:18px;
+  background:rgba(255,255,255,0.05);
+  backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,0.08);
+  box-shadow:0 20px 50px rgba(0,0,0,0.5);
+  text-align:center;
+}
+
+/* ===== TITLE ===== */
+h2{
+  margin-bottom:20px;
+  background:linear-gradient(90deg,#a78bfa,#60a5fa);
+  background-clip:text;
+  -webkit-background-clip:text;
+  color:transparent;
+}
+
+/* ===== INPUT ===== */
+input{
+  width:100%;
+  padding:12px;
+  margin:10px 0;
+  border-radius:10px;
+  border:none;
+  background:rgba(255,255,255,0.05);
+  color:white;
+}
+
+/* ===== BUTTON ===== */
+button{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border:none;
+  border-radius:10px;
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  color:white;
+  font-weight:600;
+  cursor:pointer;
+}
+
+button:hover{
+  transform:translateY(-2px);
+  box-shadow:0 10px 25px rgba(99,102,241,0.4);
+}
+
+/* ===== LINKS ===== */
+.link{
+  margin-top:12px;
+  color:#a5b4fc;
+  cursor:pointer;
+  display:block;
+}
+
+/* ===== SPINNER ===== */
+.loading-btn{
+  pointer-events:none;
+  opacity:0.8;
+}
+
+.spinner{
+  width:18px;
+  height:18px;
+  border:3px solid rgba(255,255,255,0.3);
+  border-top:3px solid white;
+  border-radius:50%;
+  animation:spin 0.8s linear infinite;
+  margin:auto;
+}
+
+@keyframes spin{
+  to{transform:rotate(360deg);}
+}
+
+/* ===== SUCCESS ANIMATION ===== */
+.success-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.8);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:999;
+}
+
+.checkmark{
+  width:80px;
+  height:80px;
+  border-radius:50%;
+  border:3px solid #22c55e;
+  position:relative;
+  margin:auto;
+}
+
+.checkmark::after{
+  content:"";
+  position:absolute;
+  left:22px;
+  top:40px;
+  width:20px;
+  height:10px;
+  border-left:3px solid #22c55e;
+  border-bottom:3px solid #22c55e;
+  transform:rotate(-45deg);
+  animation:tick 0.4s ease forwards;
+}
+
+@keyframes tick{
+  from{opacity:0;}
+  to{opacity:1;}
+}
+
+/* ===== MODAL ===== */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.7);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.modal-box{
+  width:320px;
+  padding:25px;
+  border-radius:15px;
+  background:rgba(255,255,255,0.05);
+  backdrop-filter:blur(20px);
+  text-align:center;
+}
+
+.hidden{
+  display:none;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Organization Login</h2>
+
+<input id="email" placeholder="Official Email">
+<input type="password" id="password" placeholder="Password">
+
+<button id="loginBtn" onclick="loginOrg()">Login</button>
+
+<span class="link" onclick="openForgot()">Forgot Password?</span>
+
+<p style="margin-top:15px;">
+Donor? 
+<a href="/user-login" style="color:#a78bfa;">Login here</a>
+</p>
+
+</div>
+
+<!-- FORGOT PASSWORD MODAL -->
+<div id="forgotModal" class="modal hidden">
+  <div class="modal-box">
+
+    <h3>Reset Password</h3>
+
+    <input id="fp_email" placeholder="Email">
+    <button onclick="sendOTP()">Send OTP</button>
+
+    <div id="otpSection" class="hidden">
+      <input id="otp" placeholder="Enter OTP">
+      <input type="password" id="new_pass" placeholder="New Password">
+
+      <button onclick="verifyOTP()">Verify & Update</button>
+    </div>
+
+    <button onclick="closeForgot()">Cancel</button>
+
+  </div>
+</div>
+
+<script>
+
+/* LOGIN */
+async function loginOrg(){
+
+const btn = document.getElementById("loginBtn");
+
+btn.classList.add("loading-btn");
+btn.innerHTML = `<div class="spinner"></div>`;
+
+const email = document.getElementById("email").value;
+const password = document.getElementById("password").value;
+
+try{
+
+const response = await fetch("/login-org", {
+method: "POST",
+headers: { "Content-Type": "application/json" },
+body: JSON.stringify({ email, password })
+});
+
+const result = await response.json();
+
+if(response.status === 200){
+
+localStorage.setItem("token", result.token);
+localStorage.setItem("role", result.role);
+
+/* SUCCESS ANIMATION */
+document.body.insertAdjacentHTML("beforeend",`
+<div class="success-overlay">
+  <div>
+    <div class="checkmark"></div>
+    <p style="margin-top:15px;">Login Successful</p>
+  </div>
+</div>
+`);
+
+setTimeout(()=>{
+  window.location.href="/org-dashboard";
+},1500);
+
+}else{
+alert(result.msg);
+resetBtn();
+}
+
+}catch(err){
+alert("Login failed");
+resetBtn();
+}
+
+function resetBtn(){
+btn.classList.remove("loading-btn");
+btn.innerText = "Login";
+}
+
+}
+
+/* FORGOT PASSWORD UI */
+function openForgot(){
+document.getElementById("forgotModal").classList.remove("hidden");
+}
+
+function closeForgot(){
+document.getElementById("forgotModal").classList.add("hidden");
+}
+
+/* OTP */
+async function sendOTP(){
+
+const email = document.getElementById("fp_email").value;
+
+await fetch("/send-otp-org",{
+method:"POST",
+headers:{ "Content-Type":"application/json" },
+body: JSON.stringify({ email })
+});
+
+alert("OTP sent");
+document.getElementById("otpSection").classList.remove("hidden");
+}
+
+async function verifyOTP(){
+
+const email = document.getElementById("fp_email").value;
+const otp = document.getElementById("otp").value;
+const newPass = document.getElementById("new_pass").value;
+
+const res = await fetch("/verify-otp-org",{
+method:"POST",
+headers:{ "Content-Type":"application/json" },
+body: JSON.stringify({
+email,
+otp,
+newPassword: newPass
+})
+});
+
+const result = await res.json();
+alert(result.msg);
+
+if(res.status === 200){
+closeForgot();
+}
+
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Donor Dashboard</title>
+
+<style>
+/* ===== GLOBAL ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  transition: all 0.25s ease;
+}
+
+body {
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  background: radial-gradient(circle at top, #0f172a, #020617);
+  color: #e2e8f0;
+  min-height: 100vh;
+}
+
+/* ===== HEADER ===== */
+.header {
+  position: fixed;
+  top: 0;
+  left: 240px;
+  right: 0;
+  height: 60px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:0 30px;
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(15px);
+  border-bottom:1px solid rgba(255,255,255,0.08);
+  z-index:100;
+}
+
+/* ===== NAVBAR ===== */
+.nav {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  padding: 20px;
+}
+
+.nav button {
+  padding: 10px 22px;
+  border-radius: 30px;
+  border: none;
+  background: rgba(255,255,255,0.05);
+  color: #cbd5e1;
+  backdrop-filter: blur(10px);
+}
+
+.nav button:hover,
+.nav button.active-tab {
+  background: linear-gradient(135deg,#6366f1,#8b5cf6);
+  color: white;
+  box-shadow: 0 10px 25px rgba(99,102,241,0.4);
+}
+
+/* ===== PANELS ===== */
+.panel {
+  display: none;
+  padding: 30px;
+  animation: fadeUp 0.5s ease;
+}
+
+.active {
+  display: block;
+}
+
+/* ===== SEARCH + FILTER ===== */
+input, select {
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  margin: 10px 10px 20px 0;
+  background: rgba(255,255,255,0.05);
+  color: white;
+  backdrop-filter: blur(10px);
+}
+
+input::placeholder {
+  color: #94a3b8;
+}
+
+/* ===== CARD GRID ===== */
+.card-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill,minmax(280px,1fr));
+  gap: 25px;
+}
+
+/* ===== CARD ===== */
+.request-card {
+  position: relative;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255,255,255,0.08);
+  overflow: hidden;
+  padding:22px;
+  line-height:1.6;
+}
+
+/* glowing border */
+.request-card::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 20px;
+  background: linear-gradient(45deg,#6366f1,#8b5cf6,#0ea5e9);
+  opacity: 0;
+  z-index: -1;
+  transition: 0.4s;
+}
+
+.request-card:hover::before {
+  opacity: 0.5;
+  filter: blur(20px);
+}
+
+.request-card:hover {
+  transform: translateY(-8px) scale(1.01);
+}
+
+/* ===== TEXT ===== */
+.request-card h3 {
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+
+.request-card p {
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+/* ===== BUTTON ===== */
+.request-card button:last-child {
+  width: 100%;
+  margin-top: 15px;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg,#6366f1,#8b5cf6);
+  color: white;
+  font-weight: 600;
+}
+
+.request-card button:last-child:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(99,102,241,0.4);
+}
+
+/* ===== FAVORITE BUTTON ===== */
+.favorite-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  border: none;
+  color: #f87171;
+}
+
+.favorite-btn:hover {
+  background: #f87171;
+  color: white;
+  transform: scale(1.2);
+}
+
+#favorites .request-card{
+  margin-bottom:20px;
+}
+
+/* ===== PROGRESS ===== */
+.progress-bar {
+  height: 8px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 10px 0;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg,#6366f1,#0ea5e9);
+  animation: progressAnim 1.5s ease;
+}
+
+/* ===== MODAL ===== */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background: rgba(255,255,255,0.05);
+  padding: 30px;
+  border-radius: 18px;
+  width:450px;
+  line-height:1.6;
+  backdrop-filter: blur(20px);
+  animation: scaleIn 0.3s ease;
+}
+
+.modal-content button{
+  margin-top:10px;
+  width:100%;
+  padding:12px;
+  border-radius:10px;
+}
+
+/* ===== NOTIFICATIONS ===== */
+.notification {
+  padding: 12px;
+  margin: 10px 0;
+  border-left: 3px solid #6366f1;
+  background: rgba(255,255,255,0.05);
+  border-radius: 10px;
+}
+
+/* ===== LOGOUT ===== */
+.container {
+  text-align: center;
+  margin: 40px;
+}
+
+.container button {
+  padding: 12px 25px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg,#ef4444,#f87171);
+  color: white;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeUp {
+  from {opacity:0; transform:translateY(20px);}
+  to {opacity:1; transform:translateY(0);}
+}
+
+@keyframes scaleIn {
+  from {transform:scale(0.8); opacity:0;}
+  to {transform:scale(1); opacity:1;}
+}
+
+@keyframes progressAnim {
+  from {width:0;}
+}
+
+/* ===== APP LAYOUT ===== */
+.app {
+  display: flex;
+  height: 100vh;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  width: 240px;
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(20px);
+  border-right: 1px solid rgba(255,255,255,0.08);
+  padding: 25px 15px;
+  display: flex;
+  flex-direction: column;
+}
+
+.logo {
+  font-size: 18px;
+  margin-bottom: 30px;
+  color: #a5b4fc;
+}
+
+/* SIDEBAR BUTTONS */
+.side-btn {
+  padding: 12px 15px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  background: transparent;
+  border: none;
+  color: #cbd5e1;
+  text-align: left;
+  cursor: pointer;
+}
+
+.side-btn:hover,
+.side-btn.active-tab {
+  background: linear-gradient(135deg,#6366f1,#8b5cf6);
+  color: white;
+}
+
+.profile-btn {
+  margin-top: auto;
+  background: rgba(68, 156, 239, 0.2);
+}
+
+/* ===== MAIN ===== */
+.main {
+  flex: 1;
+  padding: 30px;
+  overflow-y: auto;
+  margin-top:70px;
+}
+
+/* ===== TOPBAR ===== */
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.topbar h1 {
+  font-size: 28px;
+}
+
+/* ===== TOOLBAR ===== */
+.toolbar {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+/* ===== FIX DUPLICATES ===== */
+.panel h2 {
+  display: none; /* removes duplicate "Donation Requests" */
+}
+
+/* ===== ALIGNMENT FIXES ===== */
+.card-container {
+  margin-top: 10px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 900px) {
+  .sidebar {
+    width: 70px;
+  }
+
+  .logo {
+    display: none;
+  }
+
+  .side-btn {
+    text-align: center;
+    font-size: 12px;
+  }
+}
+
+select{
+  appearance:none;
+  background: rgba(255,255,255,0.08);
+  color:white;
+}
+
+#history .request-card{
+  margin-bottom:15px;
+}
+
+.side-btn:hover{
+  transform:translateX(5px);
+}
+
+#hotRequests .request-card{
+  animation: fadeUp 0.6s ease;
+}
+
+.remove-btn{
+  margin-top:10px;
+  padding:6px 14px;
+  border:none;
+  border-radius:8px;
+  background:rgba(239,68,68,0.15);
+  color:#ef4444;
+  font-size:13px;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+.remove-btn:hover{
+  background:#ef4444;
+  color:white;
+  box-shadow:0 5px 15px rgba(239,68,68,0.4);
+}
+
+.top-btn{
+  padding:6px 14px;
+  border:none;
+  border-radius:8px;
+  font-size:13px;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+/* NOTIFICATION */
+.notify-btn{
+  background:rgba(99,102,241,0.15);
+  color:#a5b4fc;
+}
+
+.notify-btn:hover{
+  background:#6366f1;
+  color:white;
+}
+
+/* LOGOUT (MILD RED) */
+.logout-btn{
+  background:rgba(239,68,68,0.15);
+  color:#ef4444;
+}
+
+.logout-btn:hover{
+  background:#ef4444;
+  color:white;
+  box-shadow:0 5px 15px rgba(239,68,68,0.4);
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <div class="header">
+  <div id="welcomeText">Welcome 👋</div>
+
+  <div style="display:flex; gap:12px;">
+  <button class="top-btn notify-btn" onclick="showPanel('notifications', this)">🔔</button>
+  <button class="top-btn logout-btn" onclick="logout()">Logout</button>
+  </div>
+  </div>
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar">
+    <h2 class="logo">Community Connect</h2>
+
+    <button class="side-btn active-tab" onclick="showPanel('home', this)">Home</button>
+    <button class="side-btn" onclick="showPanel('requests', this)">Requests</button>
+    <button class="side-btn" onclick="showPanel('favorites', this)">Favorites ❤️</button>
+    <button class="side-btn" onclick="showPanel('history', this)">My Donations</button>
+    <button class="side-btn profile-btn" onclick="showPanel('profile', this)">Profile</button>
+  </aside>
+
+   <!-- ===== MAIN CONTENT ===== -->
+   <main class="main">
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <h1 id="pageTitle">Donation Requests</h1>
+    </div>
+
+    <div id="home" class="panel active">
+
+    <h2>Dashboard Overview</h2>
+
+    <!-- STATS -->
+    <div class="card-container">
+    <div class="request-card">
+      <h3>Total Donations</h3>
+      <p id="totalDonations">₹0</p>
+    </div>
+
+    <div class="request-card">
+      <h3>Items Donated</h3>
+      <p id="totalItems">0</p>
+    </div>
+
+    <div class="request-card">
+      <h3>Impact</h3>
+      <p>Helping communities ❤️</p>
+    </div>
+    </div>
+
+    <!-- QUOTE -->
+    <div class="request-card" style="margin-top:20px;">
+    <h3>🌟 Quote</h3>
+    <p>"No one has ever become poor by giving." – Anne Frank</p>
+    </div>
+
+    <!-- HOT REQUESTS -->
+    <h3 style="margin-top:20px;">🔥 Hot Requests</h3>
+    <div id="hotRequests" class="card-container"></div>
+
+    </div>
+
+    <!-- REQUEST PANEL -->
+    <div id="requests" class="panel active">
+      <div class="toolbar">
+        <input id="search" placeholder="Search..." onkeyup="loadRequests()">
+
+        <select id="categoryFilter" onchange="loadRequests()">
+          <option value="">All Categories</option>
+          <option>Education</option>
+          <option>Healthcare</option>
+          <option>Food</option>
+          <option>Clothing</option>
+        </select>
+      </div>
+
+      <div id="requestContainer" class="card-container"></div>
+    </div>
+
+    <!-- OTHER PANELS -->
+    <div id="favorites" class="panel"></div>
+    <div id="history" class="panel"></div>
+
+    <div id="notifications" class="panel">
+      <h3>Notifications</h3>
+      <div id="notificationList"></div>
+    </div>
+
+    <div id="profile" class="panel">
+
+    <h2>My Profile</h2>
+
+    <div class="request-card">
+    <p><b>Name:</b> <span id="p_name"></span></p>
+    <p><b>Email:</b> <span id="p_email"></span></p>
+    <p><b>Mobile:</b> <span id="p_mobile"></span></p>
+    </div>
+
+</div>
+
+  </main>
+</div>
+
+<script>
+async function loadDashboard() {
+
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    window.location.href = "/user-login";
+    return;
+  }
+
+  const response = await fetch("http://127.0.0.1:5000/dashboard-user", {
+    method: "GET",
+    headers: {
+      "Authorization": token
+    }
+  });
+
+  const result = await response.json();
+
+  if (response.status !== 200) {
+    alert(result.msg);
+    localStorage.clear();
+    window.location.href = "/user-login";
+  } else {
+    document.getElementById("welcomeText").innerText = result.msg;
+  }
+}
+
+function showPanel(id, btn){
+  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".side-btn").forEach(b=>b.classList.remove("active-tab"));
+
+  if(btn) btn.classList.add("active-tab");
+
+  document.getElementById(id).classList.add("active");
+
+  // 🔥 Update page title dynamically
+  const titles = {
+    requests: "Donation Requests",
+    favorites: "❤️ Favorites",
+    history: "My Donations",
+    notifications: "Notifications"
+  };
+
+  document.getElementById("pageTitle").innerText = titles[id] || "Dashboard";
+
+  if(id==="favorites") loadFavorites();
+  if(id==="history") loadHistory();
+  if(id==="notifications") loadNotifications();
+  if(id==="profile") loadProfile();
+}
+
+async function loadRequests(){
+const token = localStorage.getItem("token");
+const search = document.getElementById("search").value.toLowerCase();
+const category = document.getElementById("categoryFilter").value;
+
+let url = "/requests";
+
+if(category){
+url += "?category=" + category;
+}
+
+const response = await fetch(url,{
+headers:{
+"Authorization": token
+}
+});
+
+if(response.status !== 200){
+alert("Unauthorized. Please login again.");
+window.location.href="/user-login";
+return;
+}
+
+const data = await response.json();
+const container = document.getElementById("requestContainer");
+container.innerHTML = "";
+
+if(!data || data.length === 0){
+container.innerHTML = "<p>No requests available 😔</p>";
+return;
+}
+
+data.forEach(req => {
+
+if(search && !(req.title || "").toLowerCase().includes(search)) return;
+
+let targetText = "";
+let progressHTML = "";
+if(req.type === "Money"){
+targetText = `₹${req.received || 0} of ₹${req.amount || 0}`;
+
+progressHTML = `
+<div class="progress-bar">
+    <div class="progress-fill" style="width:${req.percent}%"></div>
+</div>
+`;
+}
+else{
+
+const qtyPercent = req.total_qty ? (req.received_qty / req.total_qty) * 100 : 0;
+const moneyPercent = req.total_money ? (req.received_money / req.total_money) * 100 : 0;
+
+targetText = `
+Items: ${req.items_description || "N/A"}<br>
+Qty: ${req.received_qty || 0} / ${req.total_qty || 0}<br>
+₹${req.received_money || 0} / ₹${req.total_money || 0}
+`;
+
+progressHTML = `
+<div class="progress-label">Items Progress</div>
+<div class="progress-bar">
+<div class="progress-fill" style="width:${qtyPercent}%"></div>
+</div>
+
+<div class="progress-label">Amount Progress</div>
+<div class="progress-bar">
+<div class="progress-fill" style="width:${moneyPercent}%"></div>
+</div>
+`;
+}
+
+container.innerHTML += `
+<div class="request-card">
+<h3>${req.title}</h3>
+<p><b>Organization:</b> ${req.org_name}</p>
+<p>${req.description}</p>
+
+${progressHTML}
+
+<p><b>${req.percent}% funded</b></p>
+
+<p>${targetText}</p>
+
+<button class="favorite-btn" onclick="toggleFavorite('${req._id}', this)">♥</button>
+
+<button onclick="openRequest('${req._id}')">View Request</button>
+
+</div>
+`;
+});
+
+if(document.getElementById("home").classList.contains("active")){
+  loadHotRequests(data);
+}
+}
+
+async function toggleFavorite(id, btn){
+const token = localStorage.getItem("token");
+await fetch("/toggle-favorite/" + id,{
+method:"POST",
+headers:{ "Authorization": token }
+});
+
+btn.classList.add("liked");
+
+setTimeout(()=>{
+btn.classList.remove("liked");
+},300);
+}
+
+async function loadFavorites(){
+const token = localStorage.getItem("token");
+const res = await fetch("/my-favorites",{
+headers:{ "Authorization": token }
+});
+const data = await res.json();
+
+const container = document.getElementById("favorites");
+
+container.innerHTML = "";
+
+if(!data || data.length === 0){
+container.innerHTML += "<p>No favorites yet ❤️</p>";
+return;
+}
+
+data.forEach(req=>{
+
+let targetText = "";
+
+if(req.type === "Money"){
+targetText = `₹${req.received_amount || 0} of ₹${req.amount || 0}`;
+}else{
+targetText = `
+Items: ${req.items_description || ""}<br>
+Qty: ${req.quantity || 0}<br>
+₹${req.received_amount || 0} of ₹${req.equivalent_amount || 0}
+`;
+}
+
+container.innerHTML += `
+<div class="request-card">
+<h3>${req.title}</h3>
+<p>${req.description}</p>
+
+<p>${targetText}</p>
+
+<button class="remove-btn" onclick="toggleFavorite('${req._id}')">
+  ❌ Remove
+</button>
+<button onclick="openRequest('${req._id}')">View Request</button>
+</div>
+`;
+
+});
+}
+
+async function loadHistory(){
+
+const token = localStorage.getItem("token");
+const res = await fetch("/my-donations",{
+headers:{ "Authorization": token }
+});
+
+const data = await res.json();
+
+const container = document.getElementById("history");
+
+container.innerHTML="";
+
+data.forEach(d=>{
+
+let badge = "";
+
+if(d.status === "Pending") badge = "🟡 Pending";
+if(d.status === "Approved") badge = "🟢 Approved";
+if(d.status === "Completed") badge = "🔵 Completed";
+
+container.innerHTML += `
+<div class="request-card">
+
+<h3>${d.title}</h3>
+
+<p>${d.type === "Items" ? `${d.quantity} items` : `₹${d.amount}`}</p>
+
+${d.type === "Items" ? `<p><b>Status:</b> ${badge}</p>` : ""}
+
+<p><small>${d.date || ""}</small></p>
+
+</div>
+`;
+});
+}
+
+
+
+async function loadNotifications(){
+const token = localStorage.getItem("token");
+const res = await fetch("/my-notifications",{
+headers:{ "Authorization": token }
+});
+
+const data = await res.json();
+
+const container = document.getElementById("notificationList");
+
+container.innerHTML = "";
+
+if(!data || data.length === 0){
+container.innerHTML = "<p>No notifications yet 🔔</p>";
+return;
+}
+
+data.forEach(n=>{
+container.innerHTML += `
+<div class="notification">
+🔔 ${n.text}
+</div>
+`;
+});
+}
+
+async function openRequest(id){
+const token = localStorage.getItem("token");
+const response = await fetch("/request/" + id,{
+headers:{
+"Authorization": token
+}
+});
+
+const data = await response.json();
+
+let details = "";
+let buttons = "";
+
+if(data.type === "Items"){
+
+details = `
+<p><b>Items:</b> ${data.items_description}</p>
+<p><b>Needed:</b> ${data.quantity}</p>
+<p><b>Equivalent Amount:</b> ₹${data.equivalent_amount}</p>
+<p><b>Request Created:</b> ${data.created_at}</p>
+`;
+
+buttons = `
+<button class="primary-btn" onclick="donateItems('${data._id}')">Donate Items</button>
+<button class="primary-btn" onclick="donateMoney('${data._id}')">💰 Donate Money</button>
+`;
+
+}
+else{
+
+details = `
+<p><b>Requested Money:</b> ₹${data.amount}</p>
+<p><b>Request Created:</b> ${data.created_at}</p>
+`;
+
+buttons = `
+<button class="primary-btn" onclick="donateMoney('${data._id}')">💰 Donate Money</button>
+`;
+
+}
+
+const modal = `
+<div id="donationModal" class="modal">
+<div class="modal-content">
+<h2>${data.title}</h2>
+<p><b>Organization:</b> ${data.org_name}</p>
+<p><b>Category:</b> ${data.category}</p>
+<p>${data.description}</p>
+${details}
+<p><b>Location:</b> ${data.location || "Not specified"}</p>
+${buttons}
+
+<button class="secondary-btn" onclick="closeModal()">Close</button>
+
+</div>
+</div>
+`;
+
+document.body.insertAdjacentHTML("beforeend",modal);
+}
+
+function loadHotRequests(data){
+const container = document.getElementById("hotRequests");
+container.innerHTML = "";
+
+/* sort by highest % funded */
+data.sort((a,b)=> b.percent - a.percent);
+
+/* take top 3 */
+data.slice(0,3).forEach(req=>{
+
+container.innerHTML += `
+<div class="request-card">
+<h3>${req.title}</h3>
+<p>${req.description}</p>
+<p><b>${req.percent}% funded</b></p>
+</div>
+`;
+
+});
+
+}
+
+async function loadProfile(){
+const token = localStorage.getItem("token");
+const res = await fetch("/dashboard-user",{
+headers:{ "Authorization": token }
+});
+
+const data = await res.json();
+
+document.getElementById("p_name").innerText = data.name || "";
+document.getElementById("p_email").innerText = data.email || "";
+document.getElementById("p_mobile").innerText = data.mobile || "";
+
+}
+
+function closeModal(){
+const modal = document.getElementById("donationModal");
+if(modal){
+modal.remove();
+}
+}
+
+function donateItems(id){
+window.location.href = "/donate-item?request=" + id;
+}
+
+function donateMoney(id){
+window.location.href="/donate-money?request="+id;
+}
+
+loadRequests();
+
+function logout() {
+  localStorage.clear();
+  localStorage.removeItem("token");
+  localStorage.removeItem("role");
+  window.location.href = "/user-login";
+}
+
+loadDashboard();
+
+document.addEventListener("DOMContentLoaded",()=>{
+showPanel("home", document.querySelector(".side-btn"));
+});
+</script>
+
+</body>
+</html>

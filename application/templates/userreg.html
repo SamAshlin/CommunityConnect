@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Donor Registration</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+/* ===== GLOBAL ===== */
+/* MOVING GRADIENT BACKGROUND */
+body{
+  margin:0;
+  font-family:'Inter',sans-serif;
+
+  background: linear-gradient(
+    270deg,
+    #eef2ff,
+    #f8fafc,
+    #e0e7ff,
+    #f0f9ff
+  );
+
+  background-size: 400% 400%;
+  animation: gradientMove 12s ease infinite;
+
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:100vh;
+}
+
+/* ANIMATION */
+@keyframes gradientMove{
+  0%{background-position:0% 50%;}
+  50%{background-position:100% 50%;}
+  100%{background-position:0% 50%;}
+}
+
+/* ===== CARD ===== */
+.container{
+  width:420px;
+  padding:30px;
+  border-radius:18px;
+  background:white;
+  box-shadow:0 20px 40px rgba(0,0,0,0.08);
+}
+
+/* ===== TITLE ===== */
+h2{
+  text-align:center;
+  margin-bottom:20px;
+  display:inline-block;
+
+  background: linear-gradient(90deg,#6366f1,#8b5cf6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ===== INPUT ===== */
+input,select{
+  width:100%;
+  padding:12px;
+  margin:10px 0;
+  border-radius:10px;
+  border:1px solid #e5e7eb;
+}
+
+/* ===== BUTTON ===== */
+button{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border:none;
+  border-radius:10px;
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  color:white;
+  font-weight:600;
+  cursor:pointer;
+}
+
+/* ===== SPINNER ===== */
+.loading-btn{pointer-events:none;}
+.spinner{
+  width:18px;height:18px;
+  border:3px solid #ccc;
+  border-top:3px solid #6366f1;
+  border-radius:50%;
+  animation:spin 0.8s linear infinite;
+  margin:auto;
+}
+
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ===== SUCCESS ===== */
+.success{
+  text-align:center;
+  color:green;
+  margin-top:10px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Create Account</h2>
+
+<input id="name" placeholder="Full Name">
+<input id="email" placeholder="Email">
+<input id="mobile" placeholder="Mobile">
+<input id="address" placeholder="Address">
+
+<select id="idProofType">
+<option value="">Select ID Proof</option>
+<option>Aadhar</option>
+<option>PAN</option>
+<option>Driving License</option>
+</select>
+
+<input id="idProofNumber" placeholder="ID Proof Number">
+<input type="password" id="password" placeholder="Password">
+
+<button id="regBtn" onclick="registerUser()">Register</button>
+
+<p style="text-align:center;margin-top:10px;">
+Organization? <a href="/org-register">Register here</a>
+</p>
+
+<div id="msg" class="success"></div>
+
+</div>
+
+<script>
+
+async function registerUser(){
+
+const btn = document.getElementById("regBtn");
+btn.classList.add("loading-btn");
+btn.innerHTML = `<div class="spinner"></div>`;
+
+const data = {
+name: name.value,
+email: email.value,
+mobile: mobile.value,
+address: address.value,
+idProofType: idProofType.value,
+idProofNumber: idProofNumber.value,
+password: password.value
+};
+
+const res = await fetch("/register-user",{
+method:"POST",
+headers:{ "Content-Type":"application/json" },
+body: JSON.stringify(data)
+});
+
+const result = await res.json();
+
+btn.classList.remove("loading-btn");
+btn.innerText = "Register";
+
+document.getElementById("msg").innerText = result.msg;
+
+}
+
+</script>
+
+</body>
+</html>

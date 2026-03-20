@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Admin Dashboard</title>
+<style>
+body {
+  margin: 0;
+  font-family: "Segoe UI";
+  background: #f2f2f2;
+}
+.header {
+  background: #2c2c2c;
+  padding: 15px;
+  text-align: center;
+  color: #f4b400;
+  font-weight: bold;
+}
+.container {
+  width: 900px;
+  margin: 40px auto;
+}
+.card {
+  background: white;
+  padding: 20px;
+  margin-bottom: 15px;
+  border-left: 5px solid #f4b400;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+}
+button {
+  margin-right: 10px;
+  padding: 6px 12px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+}
+.approve { background: green; color: white; }
+.reject { background: red; color: white; }
+.logout { background: #f4b400; color: white; }
+
+/* Overlay */
+
+.modal-overlay{
+  display:none;
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.55);
+  backdrop-filter:blur(4px);
+  justify-content:center;
+  align-items:center;
+}
+
+/* Modal Box */
+
+.modal-box{
+  background:white;
+  width:550px;
+  padding:25px;
+  border-radius:10px;
+  box-shadow:0 10px 35px rgba(0,0,0,0.3);
+  animation:popup 0.25s ease;
+}
+
+@keyframes popup{
+  from{
+    transform:scale(0.9);
+    opacity:0;
+  }
+  to{
+    transform:scale(1);
+    opacity:1;
+  }
+}
+
+/* Header */
+
+.modal-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:15px;
+}
+
+.close-btn{
+  cursor:pointer;
+  font-size:18px;
+  color:#666;
+}
+
+/* Details Grid */
+
+.details-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.details-grid p{
+  margin:4px 0;
+  font-size:14px;
+}
+
+.details-grid b{
+  color:#444;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">Community Connect - Admin Panel</div>
+
+<div class="container">
+<h2>Pending Organizations</h2>
+<div id="orgList"></div>
+<button class="logout" onclick="logout()">Logout</button>
+</div>
+
+<div id="detailsModal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2>Organization Details</h2>
+      <span class="close-btn" onclick="closeModal()">✖</span>
+    </div>
+    <div id="detailsContent" class="details-grid"></div>
+  </div>
+</div>
+
+<script>
+async function loadPendingOrgs() {
+
+  const token = localStorage.getItem("token");
+
+  const response = await fetch("http://127.0.0.1:5000/admin/pending-orgs", {
+    headers: { "Authorization": token }
+  });
+
+  if(response.status !== 200) {
+    alert("Unauthorized");
+    window.location.href = "/admin-login";
+    return;
+  }
+
+  const orgs = await response.json();
+  const container = document.getElementById("orgList");
+  container.innerHTML = "";
+
+  orgs.forEach(org => {
+   container.innerHTML += `
+   <div class="card">
+    <h3>${org.org_name}</h3>
+    <p><b>Registration No:</b> ${org.registration_number}</p>
+    <p><b>Email:</b> ${org.email}</p>
+    <p><b>Contact:</b> ${org.mobile}</p>
+
+    <button class="approve" onclick="approveOrg('${org._id}')">Approve</button>
+    <button class="reject" onclick="rejectOrg('${org._id}')">Reject</button>
+    <button onclick='viewDetails(${JSON.stringify(org)})'>View Details</button>
+   </div>
+   `;
+  });
+}
+
+async function approveOrg(id) {
+  const token = localStorage.getItem("token");
+  await fetch(`http://127.0.0.1:5000/admin/approve-org/${id}`, {
+    method: "PUT",
+    headers: { "Authorization": token }
+  });
+  loadPendingOrgs();
+}
+
+async function rejectOrg(id) {
+  const token = localStorage.getItem("token");
+  await fetch(`http://127.0.0.1:5000/admin/reject-org/${id}`, {
+    method: "PUT",
+    headers: { "Authorization": token }
+  });
+  loadPendingOrgs();
+}
+
+function viewDetails(org){
+
+  const container = document.getElementById("detailsContent");
+
+  container.innerHTML = `
+    <p><b>Organization</b><br>${org.org_name}</p>
+    <p><b>Registration No</b><br>${org.registration_number}</p>
+    <p><b>NGO Type</b><br>${org.ngo_type}</p>
+    <p><b>Contact Person</b><br>${org.contact_person}</p>
+    <p><b>Email</b><br>${org.email}</p>
+    <p><b>Mobile</b><br>${org.mobile}</p>
+    <p><b>Address</b><br>${org.address}</p>
+    <p><b>Bank Account</b><br>${org.bank_account}</p>
+    <p><b>IFSC</b><br>${org.ifsc}</p>
+    <p><b>Status</b><br>${org.status}</p>
+    <p><b>Registered At</b><br>${org.created_at}</p>
+    <p style="grid-column:span 2">
+      <b>Description</b><br>${org.description}
+    </p>
+  `;
+
+  document.getElementById("detailsModal").style.display = "flex";
+}
+
+function closeModal(){
+  document.getElementById("detailsModal").style.display = "none";
+}
+
+window.onclick = function(event) {
+  const modal = document.getElementById("detailsModal");
+  if(event.target === modal){
+    modal.style.display = "none";
+  }
+}
+
+function logout() {
+  localStorage.clear();
+  window.location.href = "/admin-login";
+}
+
+window.onload = loadPendingOrgs;
+</script>
+
+</body>
+</html>

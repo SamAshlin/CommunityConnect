@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Admin Login</title>
+<style>
+body {
+  margin: 0;
+  font-family: "Segoe UI";
+  background: #f2f2f2;
+}
+.header {
+  background: #2c2c2c;
+  padding: 15px;
+  text-align: center;
+  color: #f4b400;
+  font-weight: bold;
+}
+.container {
+  width: 350px;
+  margin: 100px auto;
+  background: white;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+}
+input {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+}
+button {
+  width: 100%;
+  padding: 10px;
+  background: #f4b400;
+  border: none;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">Community Connect - Admin</div>
+
+<div class="container">
+<h2>Admin Login</h2>
+
+<input id="username" placeholder="Username">
+<input type="password" id="password" placeholder="Password">
+<button onclick="loginAdmin()">Login</button>
+</div>
+
+<script>
+async function loginAdmin() {
+
+  const username = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
+
+  const response = await fetch("http://127.0.0.1:5000/login-admin", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ username, password })
+  });
+
+  const result = await response.json();
+  alert(result.msg);
+
+  if(response.status === 200) {
+    localStorage.setItem("token", result.token);
+    localStorage.setItem("role", result.role);
+    window.location.href = "/admin-dashboard";
+  }
+}
+</script>
+
+</body>
+</html>
