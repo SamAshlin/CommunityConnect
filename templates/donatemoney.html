@@ -13,9 +13,9 @@ body{
   background: radial-gradient(circle at top,#0f172a,#020617);
   color:#e2e8f0;
   min-height:100vh;
+
   display:flex;
-  align-items:center;
-  justify-content:center;
+  flex-direction:column;
 }
 
 /* ===== CARD ===== */
@@ -29,7 +29,7 @@ body{
   box-shadow:0 20px 50px rgba(0,0,0,0.5);
   text-align:center;
   animation:fadeUp 0.5s ease;
-  margin: auto;
+  transition:all 0.3s ease;
 }
 
 /* ===== TITLE ===== */
@@ -111,6 +111,95 @@ button{
   margin:auto;
 }
 
+.top-header{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:70px; /* increased */
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 40px; /* more side spacing */
+  background:rgba(15,23,42,0.85);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(255,255,255,0.05);
+  z-index:100;
+  overflow:visible;
+}
+
+/* LEFT SIDE */
+.left-header{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.top-header h1{
+  margin:0;
+  font-size:20px;
+  background:linear-gradient(90deg,#a78bfa,#60a5fa);
+  -webkit-background-clip:text;
+  background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+
+/* DOTS */
+.dots span{
+  display:inline-block;
+  width:6px;
+  height:6px;
+  margin:0 3px;
+  background:#6366f1;
+  border-radius:50%;
+  animation:bounce 1s infinite;
+}
+
+.dots span:nth-child(2){ animation-delay:0.2s; }
+.dots span:nth-child(3){ animation-delay:0.4s; }
+
+/* BACK BUTTON */
+.back-btn{
+  margin-right: 50px;
+  width:auto;
+  padding:6px 16px;
+  border-radius:20px;
+  background:rgba(255,255,255,0.08);
+  border:none;
+  font-size:13px;
+  color:#cbd5f5;
+  cursor:pointer;
+  transition:0.25s;
+  white-space:nowrap; /* prevents cutting */
+}
+
+.back-btn:hover{
+  background:#6366f1;
+  color:white;
+}
+
+.trust-bar{
+  position:relative;
+  margin:20px 0 30px;
+  text-align:center;
+  font-size:14px;
+  color:#94a3b8;
+  padding-bottom:25px;
+}
+
+.main-wrapper{
+  flex:1;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding-top:80px; /* space for header */
+}
+
+@keyframes bounce{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-8px)}
+}
+
 @keyframes spin{
   from{transform:rotate(0);}
   to{transform:rotate(360deg);}
@@ -126,6 +215,22 @@ button{
 
 <body>
 
+<div class="top-header">
+
+  <div class="left-header">
+    <h1>Payment Portal</h1>
+    <div class="dots">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+
+  <button class="back-btn" onclick="goHome()">
+    ← Back to Home
+  </button>
+
+</div>
+
+<div class="main-wrapper">
 <div class="container">
 <h2 id="title">Loading...</h2>
 <div class="info" id="org"></div>
@@ -147,6 +252,14 @@ button{
 <div id="successMsg" class="success"></div>
 
 </div>
+</div>
+
+<div class="trust-bar">
+  🔒 Secure Payment &nbsp; • &nbsp;
+  ✅ Verified NGO &nbsp; • &nbsp;
+  📊 Transparent Usage &nbsp; • &nbsp;
+  ⚡ Instant Confirmation
+</div>
 
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
@@ -156,6 +269,10 @@ const params = new URLSearchParams(window.location.search);
 const requestId = params.get("request");
 
 const token = localStorage.getItem("token");
+
+function goHome(){
+  window.location.href = "/user-dashboard";
+}
 
 async function loadRequest(){
 if(!token){
