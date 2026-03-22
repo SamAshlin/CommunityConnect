@@ -10,14 +10,19 @@
 
 /* ===== GLOBAL ===== */
 body{
+  overflow:hidden;
   margin:0;
   font-family:'Inter',sans-serif;
-  background: radial-gradient(circle at top,#0f172a,#020617);
+  background: linear-gradient(
+    270deg,
+    #020617,
+    #0f172a,
+    #020617
+  );
+  background-size:400% 400%;
+  animation: bgMove 15s ease infinite;
   color:#e2e8f0;
   height:100vh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
 }
 
 /* ===== CARD ===== */
@@ -30,6 +35,11 @@ body{
   border:1px solid rgba(255,255,255,0.08);
   box-shadow:0 20px 50px rgba(0,0,0,0.5);
   text-align:center;
+  margin-top:40px;
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%, -50%);
 }
 
 /* ===== TITLE ===== */
@@ -171,12 +181,96 @@ button:hover{
   to{transform:scale(1); opacity:1;}
 }
 
+.back-btn{
+  position:fixed;
+  top:20px;
+  left:20px;
+  padding:6px 12px;
+  font-size:13px;
+  border:none;
+  border-radius:20px;
+  background:rgba(255,255,255,0.08);
+  color:#cbd5f5;
+  z-index:10;
+  display:inline-block; /* IMPORTANT */
+  width:auto !important; /* override global button width */
+}
+
+.back-btn:hover{
+  background:#6366f1;
+  color:white;
+  box-shadow:0 5px 15px rgba(99,102,241,0.4);
+}
+
+.brand{
+  position:fixed;
+  top:50px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:100; /* IMPORTANT */
+  font-size:20px;
+  font-weight:600;
+  background:linear-gradient(90deg,#a78bfa,#60a5fa);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
+
+.brand::after{
+  content:"";
+  display:block;
+  width:40px;
+  height:3px;
+  margin:6px auto;
+  background:linear-gradient(90deg,#6366f1,#8b5cf6);
+  border-radius:10px;
+}
+
+.welcome-msg{
+  font-size:14px;
+  color:#94a3b8;
+  margin-bottom:15px;
+}
+
+.welcome-msg span{
+  font-size:12px;
+  color:#64748b;
+}
+
+.org-link{
+  margin-top:25px;
+  font-size:13px;
+  color:#94a3b8;
+}
+
+.org-link a{
+  color:#a78bfa;
+  text-decoration:none;
+  font-weight:500;
+}
+
+@keyframes bgMove{
+  0%{background-position:0% 50%;}
+  50%{background-position:100% 50%;}
+  100%{background-position:0% 50%;}
+}
+
 </style>
 </head>
 
 <body>
+<button class="back-btn" onclick="goBack()">← Back</button>
+
+<div class="brand">
+  Community Connect
+</div>
 
 <div class="container">
+
+<p class="welcome-msg">
+  Welcome back 👋<br>
+  <span>Continue making impact today</span>
+</p>
 
 <h2>Donor Login</h2>
 
@@ -187,9 +281,9 @@ button:hover{
 
 <span class="link" onclick="openForgot()">Forgot Password?</span>
 
-<p style="margin-top:15px;">
-Organization? 
-<a href="/org-login" style="color:#a78bfa;">Login here</a>
+<p class="org-link">
+  Are You An Organization? 
+  <a href="/org-login">Login here</a>
 </p>
 
 </div>
@@ -350,6 +444,10 @@ alert(result.msg);
 if(res.status === 200){
 closeForgot();
 }
+}
+
+function goBack(){
+  window.location.href="/";
 }
 
 </script>
