@@ -319,16 +319,10 @@ def verify_otp_org():
 @token_required(role="donor")
 def dashboard_user(decoded):
 
-    try:
-        user = users_collection.find_one({"_id": ObjectId(decoded["id"])})
-    except:
-        user = None
-
-    if not user:
-        return jsonify({"msg": "User not found"}), 404
+    user = users_collection.find_one({"_id": ObjectId(decoded["id"])})
 
     return jsonify({
-        "msg": f"Welcome {user.get('name','User')}",
+        "msg": f"Welcome {user['name']}",
         "name": user.get("name"),
         "email": user.get("email"),
         "mobile": user.get("mobile")
