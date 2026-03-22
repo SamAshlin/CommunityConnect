@@ -12,12 +12,16 @@
 body{
   margin:0;
   font-family:'Inter',sans-serif;
-  background: radial-gradient(circle at top,#0f172a,#020617);
+  background: linear-gradient(
+    270deg,
+    #020617,
+    #0f172a,
+    #020617
+  );
+  background-size:400% 400%;
+  animation: bgMove 18s ease infinite;
   color:#e2e8f0;
   height:100vh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
 }
 
 /* ===== CARD ===== */
@@ -30,6 +34,10 @@ body{
   border:1px solid rgba(255,255,255,0.08);
   box-shadow:0 20px 50px rgba(0,0,0,0.5);
   text-align:center;
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%, -50%);
 }
 
 /* ===== TITLE ===== */
@@ -159,14 +167,135 @@ button:hover{
   display:none;
 }
 
+.brand{
+  position:fixed;
+  top:50px;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:20px;
+  font-weight:600;
+  background:linear-gradient(90deg,#60a5fa,#22d3ee); /* DIFFERENT */
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
+
+.brand::after{
+  content:"";
+  display:block;
+  width:40px;
+  height:3px;
+  margin:6px auto;
+  background:linear-gradient(90deg,#38bdf8,#22d3ee);
+  border-radius:10px;
+}
+
+.back-btn{
+  position:fixed;
+  top:20px;
+  left:20px;
+  padding:6px 12px;
+  font-size:13px;
+  border:none;
+  border-radius:20px;
+  background:rgba(255,255,255,0.08);
+  color:#cbd5f5;
+  z-index:10;
+  width:auto; /* IMPORTANT */
+}
+.back-btn:hover{
+  background:#6366f1;
+  color:white;
+  box-shadow:0 5px 15px rgba(99,102,241,0.4);
+}
+
+.org-icon{
+  width:60px;
+  height:60px;
+  margin:0 auto 15px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:26px;
+  border-radius:50%;
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  box-shadow:0 10px 30px rgba(99,102,241,0.4);
+  animation: floatIcon 4s ease-in-out infinite;
+}
+
+/* FLOATING GLOW BLOBS */
+body::before,
+body::after{
+  content:"";
+  position:fixed;
+  width:300px;
+  height:300px;
+  background:linear-gradient(45deg,#6366f1,#8b5cf6);
+  filter:blur(120px);
+  opacity:0.15;
+  z-index:-1;
+  animation: floatBg 12s infinite ease-in-out;
+}
+
+body::before{
+  top:-80px;
+  left:-80px;
+}
+
+body::after{
+  bottom:-80px;
+  right:-80px;
+}
+
+.welcome-msg{
+  font-size:14px;
+  color:#94a3b8;
+  margin-bottom:15px;
+}
+
+.welcome-msg span{
+  font-size:12px;
+  color:#64748b;
+}
+
+@keyframes floatBg{
+  0%{transform:translate(0,0);}
+  50%{transform:translate(60px,60px);}
+  100%{transform:translate(0,0);}
+}
+
+@keyframes floatIcon{
+  0%,100%{transform:translateY(0);}
+  50%{transform:translateY(-6px);}
+}
+
+.org-link{
+  margin-top:25px;
+  font-size:13px;
+  color:#94a3b8;
+}
+
+.org-link a{
+  color:#a78bfa;
+  text-decoration:none;
+  font-weight:500;
+}
+
 </style>
 </head>
 
 <body>
+<button class="back-btn" onclick="goBack()">← Back</button>
+
+<div class="brand">Community Connect</div>
 
 <div class="container">
-
-<h2>Organization Login</h2>
+  <div class="org-icon">🏢</div>
+  <p class="welcome-msg">
+  Back At Work!<br>
+  <span>Manage, Track and Make a impact at donations</span>
+  </p>
+  <h2>Organization Access</h2>
 
 <input id="email" placeholder="Official Email">
 <input type="password" id="password" placeholder="Password">
@@ -175,9 +304,8 @@ button:hover{
 
 <span class="link" onclick="openForgot()">Forgot Password?</span>
 
-<p style="margin-top:15px;">
-Donor? 
-<a href="/user-login" style="color:#a78bfa;">Login here</a>
+<p class="org-link">
+"Are you a volunteer?" <a href="/user-login">Login</a>
 </p>
 
 </div>
@@ -311,6 +439,9 @@ closeForgot();
 
 }
 
+function goBack(){
+  window.location.href="/";
+}
 </script>
 
 </body>
