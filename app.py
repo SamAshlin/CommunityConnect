@@ -81,23 +81,37 @@ def token_required(role=None):
 # ====================================
 @app.route("/register-user", methods=["POST"])
 def register_user():
-    data = request.json
 
-    if users_collection.find_one({"mobile": data["mobile"]}):
+    data = request.get_json()
+
+    # Safe extraction
+    name = data.get("name")
+    email = data.get("email")
+    mobile = data.get("mobile")
+    address = data.get("address")
+    id_type = data.get("idProofType")
+    id_number = data.get("idProofNumber")
+    password = data.get("password")
+
+    # Validation
+    if not name or not email or not mobile or not password:
+        return jsonify({"msg": "Missing required fields"}), 400
+
+    if users_collection.find_one({"mobile": mobile}):
         return jsonify({"msg": "User already exists"}), 400
 
     hashed_pw = bcrypt.hashpw(
-        data["password"].encode("utf-8"),
+        password.encode("utf-8"),
         bcrypt.gensalt()
     )
 
     user_data = {
-        "name": data["name"],
-        "email": data["email"],
-        "mobile": data["mobile"],
-        "address": data["address"],
-        "id_proof_type": data["idProofType"],
-        "id_proof_number": data["idProofNumber"],
+        "name": name,
+        "email": email,
+        "mobile": mobile,
+        "address": address,
+        "id_proof_type": id_type,
+        "id_proof_number": id_number,
         "password": hashed_pw,
         "role": "donor",
         "created_at": datetime.datetime.utcnow()
@@ -107,34 +121,54 @@ def register_user():
 
     return jsonify({"msg": "User registered successfully"}), 201
 
-
 # ====================================
 # ORGANIZATION REGISTRATION
 # ====================================
 @app.route("/register-org", methods=["POST"])
 def register_org():
-    data = request.json
 
-    if org_collection.find_one({"registration_number": data["registrationNumber"]}):
+    data = request.get_json()
+
+    org_name = data.get("orgName")
+    reg_no = data.get("registrationNumber")
+    ngo_type = data.get("ngoType")
+    description = data.get("description")
+    contact = data.get("contactPerson")
+    email = data.get("email")
+    mobile = data.get("mobile")
+    address = data.get("address")
+    bank = data.get("bankAccount")
+    ifsc = data.get("ifsc")
+    upi = data.get("upi")
+    password = data.get("password")
+
+    # ✅ Validation
+    if not org_name or not reg_no or not email or not mobile or not password:
+        return jsonify({"msg": "Missing required fields"}), 400
+
+    if org_collection.find_one({"registration_number": reg_no}):
         return jsonify({"msg": "Organization already registered"}), 400
+    
+    if org_collection.find_one({"email": email}):
+        return jsonify({"msg": "Email already registered"}), 400
 
     hashed_pw = bcrypt.hashpw(
-        data["password"].encode("utf-8"),
+        password.encode("utf-8"),
         bcrypt.gensalt()
     )
 
     org_data = {
-        "org_name": data["orgName"],
-        "registration_number": data["registrationNumber"],
-        "ngo_type": data["ngoType"],
-        "contact_person": data["contactPerson"],
-        "email": data["email"],
-        "mobile": data["mobile"],
-        "address": data["address"],
-        "bank_account": data["bankAccount"],
-        "ifsc": data["ifsc"],
-        "upi": data["upi"],
-        "description": data["description"],
+        "org_name": org_name,
+        "registration_number": reg_no,
+        "ngo_type": ngo_type,
+        "contact_person": contact,
+        "email": email,
+        "mobile": mobile,
+        "address": address,
+        "bank_account": bank,
+        "ifsc": ifsc,
+        "upi": upi,
+        "description": description,
         "password": hashed_pw,
         "role": "organization",
         "status": "Pending",
@@ -144,8 +178,6 @@ def register_org():
     org_collection.insert_one(org_data)
 
     return jsonify({"msg": "Organization registered. Await admin approval."}), 201
-
-
 # ====================================
 # USER LOGIN
 # ====================================
@@ -469,8 +501,12 @@ def my_requests(decoded):
     result = []
 
     for r in requests:
-        r["_id"] = str(r["_id"])
-        result.append(r)
+         r["_id"] = str(r["_id"])
+
+         org = org_collection.find_one({"_id": ObjectId(r["org_id"])})
+         r["org_name"] = org["org_name"] if org else "Organization"
+
+         result.append(r)
 
     return jsonify(result)
 
@@ -607,7 +643,8 @@ def donate_items(decoded):
 
     address = request.form.get("address")
     date = request.form.get("date")
-    time = request.form.get("time")
+    name = request.form.get("name")
+    mobile = request.form.get("mobile")
 
     file = request.files.get("proof")
 
@@ -625,13 +662,14 @@ def donate_items(decoded):
         "quantity": quantity,
         "type": "Items",
         "method": method,
+        "name": name,
+        "mobile": mobile,
         "address": address,
         "date": date,
-        "time": time,
         "proof": file_path,
         "status": "Pending",
         "created_at": datetime.datetime.utcnow()
-    })
+        })
 
     return jsonify({"msg":"Item donation submitted successfully"})
 
@@ -660,7 +698,7 @@ def org_item_donations(decoded):
             "status": d["status"],
             "address": d.get("address"),
             "date": d.get("date"),
-            "time": d.get("time"),
+            "time": None,
             "proof": d.get("proof")
         })
 
@@ -714,6 +752,22 @@ def update_item_status(decoded):
 def uploaded_file(filename):
     return send_from_directory("uploads", filename)
 
+@app.route("/org-profile", methods=["GET"])
+@token_required(role="organization")
+def org_profile(decoded):
+
+    org = org_collection.find_one({"_id": ObjectId(decoded["id"])})
+
+    if not org:
+        return jsonify({"msg":"Not found"}),404
+
+    return jsonify({
+        "name": org.get("org_name"),
+        "email": org.get("email"),
+        "type": org.get("ngo_type"),
+        "contact": org.get("contact_person"),
+        "mobile": org.get("mobile")
+    })
 
 @app.route("/requests", methods=["GET"])
 @token_required(role="donor")
@@ -790,7 +844,10 @@ def get_single_request(decoded, request_id):
         "location": req["location"],
         "equivalent_amount": req.get("equivalent_amount"),
         "created_at": req["created_at"].strftime("%d %B %Y"),
-        "org_name": org["org_name"] if org else "Unknown"
+        "org_name": org["org_name"] if org else "Unknown",
+        "email": org.get("email"),
+        "mobile": org.get("mobile"),
+        "contact_person": org.get("contact_person"),
     }
 
     return jsonify(data)
