@@ -150,18 +150,18 @@ btn.classList.add("loading-btn");
 btn.innerHTML = `<div class="spinner"></div>`;
 
 const data = {
-orgName: orgName.value,
-registrationNumber: registrationNumber.value,
-ngoType: ngoType.value,
-description: description.value,
-contactPerson: contactPerson.value,
-email: email.value,
-mobile: mobile.value,
-address: address.value,
-bankAccount: bankAccount.value,
-ifsc: ifsc.value,
-upi: upi.value,
-password: password.value
+orgName: document.getElementById("orgName").value,
+registrationNumber: document.getElementById("registrationNumber").value,
+ngoType: document.getElementById("ngoType").value,
+description: document.getElementById("description").value,
+contactPerson: document.getElementById("contactPerson").value,
+email: document.getElementById("email").value,
+mobile: document.getElementById("mobile").value,
+address: document.getElementById("address").value,
+bankAccount: document.getElementById("bankAccount").value,
+ifsc: document.getElementById("ifsc").value,
+upi: document.getElementById("upi").value,
+password: document.getElementById("password").value
 };
 
 const res = await fetch("/register-org",{
