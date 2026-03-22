@@ -144,13 +144,13 @@ btn.classList.add("loading-btn");
 btn.innerHTML = `<div class="spinner"></div>`;
 
 const data = {
-name: name.value,
-email: email.value,
-mobile: mobile.value,
-address: address.value,
-idProofType: idProofType.value,
-idProofNumber: idProofNumber.value,
-password: password.value
+name: document.getElementById("name").value,
+email: document.getElementById("email").value,
+mobile: document.getElementById("mobile").value,
+address: document.getElementById("address").value,
+idProofType: document.getElementById("idProofType").value,
+idProofNumber: document.getElementById("idProofNumber").value,
+password: document.getElementById("password").value
 };
 
 const res = await fetch("/register-user",{
