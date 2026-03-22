@@ -276,9 +276,16 @@ input::placeholder {
 }
 
 .logo {
-  font-size: 18px;
-  margin-bottom: 30px;
-  color: #a5b4fc;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:18px;
+  margin-bottom:30px;
+  color:#a5b4fc;
+}
+
+.logo span{
+  font-weight:600;
 }
 
 /* SIDEBAR BUTTONS */
@@ -291,6 +298,13 @@ input::placeholder {
   color: #cbd5e1;
   text-align: left;
   cursor: pointer;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.side-btn span{
+  flex:1;
 }
 
 .side-btn:hover,
@@ -442,13 +456,27 @@ select{
 
   <!-- ===== SIDEBAR ===== -->
   <aside class="sidebar">
-    <h2 class="logo">Community Connect</h2>
+    <h2 class="logo"> 🌐 <span>Community Connect</span> </h2>
 
-    <button class="side-btn active-tab" onclick="showPanel('home', this)">Home</button>
-    <button class="side-btn" onclick="showPanel('requests', this)">Requests</button>
-    <button class="side-btn" onclick="showPanel('favorites', this)">Favorites ❤️</button>
-    <button class="side-btn" onclick="showPanel('history', this)">My Donations</button>
-    <button class="side-btn profile-btn" onclick="showPanel('profile', this)">Profile</button>
+    <button class="side-btn active-tab" onclick="showPanel('home', this)">
+    🏠 <span>Home</span>
+    </button>
+
+    <button class="side-btn" onclick="showPanel('requests', this)">
+    📋 <span>Requests</span>
+    </button>
+
+    <button class="side-btn" onclick="showPanel('favorites', this)">
+    ❤️ <span>Favorites</span>
+    </button>
+
+    <button class="side-btn" onclick="showPanel('history', this)">
+    📦 <span>My Donations</span>
+    </button>
+
+    <button class="side-btn profile-btn" onclick="showPanel('profile', this)">
+    👤 <span>Profile</span>
+    </button>
   </aside>
 
    <!-- ===== MAIN CONTENT ===== -->
@@ -521,8 +549,6 @@ select{
 
     <div id="profile" class="panel">
 
-    <h2>My Profile</h2>
-
     <div class="request-card">
     <p><b>Name:</b> <span id="p_name"></span></p>
     <p><b>Email:</b> <span id="p_email"></span></p>
@@ -575,7 +601,8 @@ function showPanel(id, btn){
     requests: "Donation Requests",
     favorites: "❤️ Favorites",
     history: "My Donations",
-    notifications: "Notifications"
+    notifications: "Notifications",
+    profile:"My Profile"
   };
 
   document.getElementById("pageTitle").innerText = titles[id] || "Dashboard";
